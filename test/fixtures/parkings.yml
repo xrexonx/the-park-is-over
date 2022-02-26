@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  entry_datetime: 2022-02-26 11:42:10
+  exit_datetime: 2022-02-26 11:42:10
+  vehicle_type: MyString
+  slot_number: MyString
+  plate_number: MyString
+  entry_point: one
+
+two:
+  entry_datetime: 2022-02-26 11:42:10
+  exit_datetime: 2022-02-26 11:42:10
+  vehicle_type: MyString
+  slot_number: MyString
+  plate_number: MyString
+  entry_point: two

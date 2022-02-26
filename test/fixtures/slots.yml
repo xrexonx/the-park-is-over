@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  status: MyString
+  rate: 1
+  entry_point: one
+
+two:
+  name: MyString
+  status: MyString
+  rate: 1
+  entry_point: two
