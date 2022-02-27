@@ -1,9 +1,14 @@
 module PaymentService
   class Compute
     def self.run(duration, rate)
-      amount = Parking::BASE_RATE + ((duration - 1) * rate)
-      amount = Parking::ONE_DAY_RATE + ((duration - Parking::ONE_DAY) * rate) if duration >= Parking::ONE_DAY
-      amount
+      base_hours = 3
+      if duration <= base_hours
+        Parking::BASE_RATE
+      elsif duration >= Parking::ONE_DAY
+        Parking::ONE_DAY_RATE + ((duration - Parking::ONE_DAY) * rate)
+      else
+        Parking::BASE_RATE + ((duration - base_hours) * rate)
+      end
     end
   end
 end

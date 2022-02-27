@@ -5,8 +5,8 @@ class Parking < ApplicationRecord
   BASE_RATE = 40.freeze
   ONE_DAY_RATE = 5000.freeze
   RATES = {
-    'small' => 20,
-    'medium' => 60,
+    'small' => [20, 60, 100],
+    'medium' => [60, 100],
     'large' => 100
   }.freeze
 
