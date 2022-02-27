@@ -2,13 +2,13 @@ module ParkingService
   class Park
     def self.run(params)
 
+      vehicle_type = params[:vehicle_type]
       entry_point_id = params[:entry_point].to_i
       entry_point = EntryPoint.find_by_id(entry_point_id)
 
       if entry_point.present?
 
-        parking_rate = Parking::RATES[params[:vehicle_type]]
-        available_slot = SlotService::NearestAvailable.run(entry_point_id, parking_rate)
+        available_slot = SlotService::NearestAvailable.run(entry_point_id, vehicle_type)
 
         if available_slot.present?
 
