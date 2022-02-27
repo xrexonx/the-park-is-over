@@ -4,13 +4,20 @@ module ParkingService
       parking = Parking.find_by_id(id)
 
       if parking.present?
+
+        prev_exit_datetime = parking.exit_datetime
+        prev_payment = nil
+        prev_payment = Payment.find_by_parking_id(parking.id) if prev_exit_datetime.present?
+
         exit_datetime ||= DateService::CurrentDatetime.get
         parking.update_column(:exit_datetime, exit_datetime)
 
-        duration = DateService::DateTimeDiff.get(parking.entry_datetime, parking.exit_datetime)
+        entry_datetime = prev_payment ? prev_exit_datetime : parking.entry_datetime
+        duration = DateService::DateTimeDiff.get(entry_datetime, parking.exit_datetime)
 
         slot = parking.slot
-        amount = PaymentService::Compute.run(duration, slot.rate)
+        rate = slot.rate
+        amount = prev_payment ? duration * rate : PaymentService::Compute.run(duration, rate)
         payment = {
           duration: duration,
           amount: amount,
@@ -24,7 +31,7 @@ module ParkingService
           entry_datetime: parking.entry_datetime,
           exit_datetime: parking.exit_datetime,
           base_rate: Parking::BASE_RATE.to_f,
-          slot_hourly_rate: slot.rate.to_f,
+          slot_hourly_rate: rate.to_f,
           duration: duration,
           amount: amount.to_f,
           slot: slot.name,

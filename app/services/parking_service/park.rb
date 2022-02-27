@@ -3,6 +3,7 @@ module ParkingService
     def self.run(params)
 
       vehicle_type = params[:vehicle_type]
+      plate_number = params[:plate_number]
       entry_point_id = params[:entry_point].to_i
       entry_point = EntryPoint.find_by_id(entry_point_id)
 
@@ -15,21 +16,32 @@ module ParkingService
           datetime = params[:entry_datetime]
           datetime ||= DateService::CurrentDatetime.get
 
-          parking = {
-            slot: available_slot,
-            entry_datetime: datetime,
-            plate_number: params[:plate_number]
-          }
-
-          parked = Parking.create!(parking)
-          available_slot.update_column(:status, Slot::OCCUPIED) if parked
-          parked
+          parked = get_latest_parking(plate_number, datetime)
+          if parked
+            parked
+          else
+            parking = {
+              slot: available_slot,
+              entry_datetime: datetime,
+              plate_number: params[:plate_number]
+            }
+            new_parking = Parking.create!(parking)
+            available_slot.update_column(:status, Slot::OCCUPIED) if parked
+            new_parking
+          end
         else
           { error: 'No more slot available' }
         end
       else
         { error: 'Invalid entry point' }
       end
+    end
+
+    private
+    def self.get_latest_parking(plate_number, entry_datetime)
+      new_entry_datetime = entry_datetime.to_datetime
+      condition = 'plate_number = ? AND exit_datetime >= ?'
+      Parking.where(condition, plate_number, (new_entry_datetime - 1.hour))&.last
     end
 
   end
