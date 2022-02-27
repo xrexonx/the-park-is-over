@@ -7,12 +7,12 @@ module ParkingService
         exit_datetime ||= DateService::CurrentDatetime.get
         parking.update_column(:exit_datetime, exit_datetime)
 
-        time_diff = get_time_diff(parking.exit_datetime, parking.entry_datetime)
+        duration = DateService::DateTimeDiff.get(parking.entry_datetime, parking.exit_datetime)
 
         slot = parking.slot
-        amount = compute_payment(time_diff, slot.rate)
+        amount = PaymentService::Compute.run(duration, slot.rate)
         payment = {
-          duration: time_diff,
+          duration: duration,
           amount: amount,
           parking: parking
         }
@@ -23,7 +23,9 @@ module ParkingService
         {
           entry_datetime: parking.entry_datetime,
           exit_datetime: parking.exit_datetime,
-          duration: time_diff,
+          base_rate: Parking::BASE_RATE.to_f,
+          slot_hourly_rate: slot.rate.to_f,
+          duration: duration,
           amount: amount.to_f,
           slot: slot.name,
           vehicle: parking.plate_number
@@ -32,18 +34,6 @@ module ParkingService
         { error: 'No parking data found' }
       end
 
-    end
-
-    private
-    def self.compute_payment(hours_ago, rate)
-      amount = Parking::BASE_RATE + ((hours_ago - 1) * rate)
-      amount = Parking::ONE_DAY_RATE + ((hours_ago - Parking::ONE_DAY) * rate) if hours_ago >= Parking::ONE_DAY
-      amount
-    end
-
-    def self.get_time_diff(exit_datetime, entry_datetime)
-      time_diff = ((exit_datetime - entry_datetime) / 1.hour)
-      (time_diff.to_f).ceil
     end
   end
 end
