@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_02_26_034325) do
+ActiveRecord::Schema.define(version: 2022_02_27_070822) do
 
   create_table "entry_points", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb3", force: :cascade do |t|
     t.string "name"
@@ -21,13 +21,9 @@ ActiveRecord::Schema.define(version: 2022_02_26_034325) do
   create_table "parkings", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb3", force: :cascade do |t|
     t.datetime "entry_datetime"
     t.datetime "exit_datetime"
-    t.string "vehicle_type"
-    t.string "slot_number"
     t.string "plate_number"
-    t.bigint "entry_point_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["entry_point_id"], name: "index_parkings_on_entry_point_id"
   end
 
   create_table "payments", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb3", force: :cascade do |t|
@@ -46,10 +42,12 @@ ActiveRecord::Schema.define(version: 2022_02_26_034325) do
     t.bigint "entry_point_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "parking_id"
     t.index ["entry_point_id"], name: "index_slots_on_entry_point_id"
+    t.index ["parking_id"], name: "index_slots_on_parking_id"
   end
 
-  add_foreign_key "parkings", "entry_points"
   add_foreign_key "payments", "parkings"
   add_foreign_key "slots", "entry_points"
+  add_foreign_key "slots", "parkings"
 end

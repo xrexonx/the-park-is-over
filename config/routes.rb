@@ -4,9 +4,12 @@ Rails.application.routes.draw do
       resources :parking, :only => [:index] do
         collection do
           post :park
-          post :unpark
+          post :un_park
         end
       end
+
+      resources :slot, :only => [:index]
+      resources :payment, :only => [:index]
     end
   end
 end
