@@ -7,7 +7,7 @@ module ParkingService
 
         prev_exit_datetime = parking.exit_datetime
         prev_payment = nil
-        prev_payment = Payment.find_by_parking_id(parking.id) if prev_exit_datetime.present?
+        prev_payment = Payment.where(parking_id: parking.id).last if prev_exit_datetime.present?
 
         exit_datetime ||= DateService::CurrentDatetime.get
         parking.update_column(:exit_datetime, exit_datetime)
