@@ -18,7 +18,8 @@ module ParkingService
 
           parked = get_latest_parking(plate_number, datetime)
           if parked
-            parked.update_column(:slot, available_slot)
+            parked.slot = available_slot
+            parked.save!
             available_slot.update_column(:status, Slot::OCCUPIED)
             parked
           else
