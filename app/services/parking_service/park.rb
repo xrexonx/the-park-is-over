@@ -18,6 +18,8 @@ module ParkingService
 
           parked = get_latest_parking(plate_number, datetime)
           if parked
+            parked.update_column(:slot, available_slot)
+            available_slot.update_column(:status, Slot::OCCUPIED)
             parked
           else
             parking = {
@@ -26,7 +28,7 @@ module ParkingService
               plate_number: params[:plate_number]
             }
             new_parking = Parking.create!(parking)
-            available_slot.update_column(:status, Slot::OCCUPIED) if parked
+            available_slot.update_column(:status, Slot::OCCUPIED) if new_parking
             new_parking
           end
         else
