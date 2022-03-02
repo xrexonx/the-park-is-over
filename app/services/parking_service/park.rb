@@ -5,46 +5,44 @@ module ParkingService
       vehicle_type = params[:vehicle_type]
       plate_number = params[:plate_number]
       entry_point_id = params[:entry_point].to_i
-      entry_point = EntryPoint.find_by_id(entry_point_id)
+      datetime = params[:entry_datetime]
+      datetime ||= DateService::CurrentDatetime.get
 
-      if entry_point.present?
+      # Check first if valid entry point
+      return { error: 'Invalid entry point' } unless EntryPoint.find_by_id(entry_point_id).present?
 
-        available_slot = SlotService::NearestAvailable.run(entry_point_id, vehicle_type)
+      # get nearest available slot by entry point and vehicle type
+      available_slot = SlotService::NearestAvailable.run(entry_point_id, vehicle_type)
 
-        if available_slot.present?
+      if available_slot.present?
 
-          datetime = params[:entry_datetime]
-          datetime ||= DateService::CurrentDatetime.get
-
-          parked = get_latest_parking(plate_number, datetime)
-          if parked
-            parked.slot = available_slot
-            parked.save!
-            available_slot.update_column(:status, Slot::OCCUPIED)
-            parked
-          else
-            parking = {
-              slot: available_slot,
-              entry_datetime: datetime,
-              plate_number: params[:plate_number]
-            }
-            new_parking = Parking.create!(parking)
-            available_slot.update_column(:status, Slot::OCCUPIED) if new_parking
-            new_parking
-          end
+        # check vehicle if returned with in an hour by plate number and entry datetime
+        returned, parking = vehicle_returned?(plate_number, datetime)
+        if returned
+          # update existing parking date
+          parking.slot = available_slot
+          parking.save!
         else
-          { error: 'No more slot available' }
+          # create new parking data
+          new_parking = {
+            slot: available_slot,
+            entry_datetime: datetime,
+            plate_number: params[:plate_number]
+          }
+          parking = Parking.create!(new_parking)
         end
+        # update slot to occupied
+        available_slot.update_column(:status, Slot::OCCUPIED)
+        parking
       else
-        { error: 'Invalid entry point' }
+        { error: 'No more slot available' }
       end
     end
 
     private
-    def self.get_latest_parking(plate_number, entry_datetime)
-      new_entry_datetime = entry_datetime.to_datetime
-      condition = 'plate_number = ? AND exit_datetime >= ?'
-      Parking.where(condition, plate_number, (new_entry_datetime - 1.hour))&.last
+    def self.vehicle_returned?(plate_number, entry_datetime)
+      parking = Parking.where('plate_number = ? AND exit_datetime >= ?', plate_number, (entry_datetime.to_datetime - 1.hour))&.last
+      parking ? [true, parking] : [false, nil]
     end
 
   end
